@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package helloworld;
+
+service Greeter {
+  rpc ListGreetings (GreetingRequest) returns (stream GreetingReply) {}
+}
+
+message GreetingRequest {
+  int32 count = 1; // Số lượng tin nhắn để gửi
+}
+
+message GreetingReply {
+  string message = 1; // Tin nhắn trả về
+}

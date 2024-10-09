@@ -1,0 +1,20 @@
+
+services:
+  chaincode-dev:
+    image: node:18.19.0
+    container_name: ${CHAINCODE_NAME}
+    env_file:
+      - .env
+    networks:
+      - fabric_test
+    volumes:
+      - .:/usr/src/app
+    working_dir: /usr/src/app
+    command: /bin/bash startup.sh
+    tty: true
+    ports:
+      - ${PORT}
+
+networks:
+  fabric_test:
+    external: true

@@ -1,0 +1,61 @@
+import React, {useState} from 'react';
+import FabricGateway from '../libs/fabric/FabricGateway';
+import {Button, Platform, StyleSheet, Text, View, FlatList} from 'react-native';
+
+const GRPC_SERVER_URL = 'http://172.20.0.205:9090';
+const mspId: string = 'Org1MSP';
+const certificate: string = `-----BEGIN CERTIFICATE-----\nMIIChzCCAi6gAwIBAgIUDHUc0sABRE6+a4SRT6CXaX7zmMUwCgYIKoZIzj0EAwIw\ncDELMAkGA1UEBhMCVVMxFzAVBgNVBAgTDk5vcnRoIENhcm9saW5hMQ8wDQYDVQQH\nEwZEdXJoYW0xGTAXBgNVBAoTEG9yZzEuZXhhbXBsZS5jb20xHDAaBgNVBAMTE2Nh\nLm9yZzEuZXhhbXBsZS5jb20wHhcNMjQwNzE2MTQxNjAwWhcNMjUwODE2MDMyNDAw\nWjBGMTAwCwYDVQQLEwRvcmcxMA0GA1UECxMGY2xpZW50MBIGA1UECxMLZGVwYXJ0\nbWVudDExEjAQBgNVBAMTCWFwcFVzZXIyMDBZMBMGByqGSM49AgEGCCqGSM49AwEH\nA0IABELZjNguNFliTIJfsyK9a0DDvTTuWDTtAcZAi8JeiAIA/SQXI0B3iQejeAW/\nIWoRHODwtqYhOT/cQPdTS4+YT4yjgc8wgcwwDgYDVR0PAQH/BAQDAgeAMAwGA1Ud\nEwEB/wQCMAAwHQYDVR0OBBYEFJomdJeAz8B8XE2g0pY90vNm0XaHMB8GA1UdIwQY\nMBaAFNkzAnvFXcDmF+eoVhyhS73aQTGuMGwGCCoDBAUGBwgBBGB7ImF0dHJzIjp7\nImhmLkFmZmlsaWF0aW9uIjoib3JnMS5kZXBhcnRtZW50MSIsImhmLkVucm9sbG1l\nbnRJRCI6ImFwcFVzZXIyMCIsImhmLlR5cGUiOiJjbGllbnQifX0wCgYIKoZIzj0E\nAwIDRwAwRAIgUP2KQujTDGQs4h57OiT09mmSenVlPswggFF53Rn80+0CIBFsYDHd\nBBNI4xytNR8VSbkm8wgp9N8NZ+zyo80DEHE7\n-----END CERTIFICATE-----\n`;
+const privateKeyPem: string = `-----BEGIN PRIVATE KEY-----\r\nMIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQg6wTBBW8bNHpJtrDy\r\nK2vqD5fQ/r7odAJByNv3NQ3yhKShRANCAARC2YzYLjRZYkyCX7MivWtAw7007lg0\r\n7QHGQIvCXogCAP0kFyNAd4kHo3gFvyFqERzg8LamITk/3ED3U0uPmE+M\r\n-----END PRIVATE KEY-----\r\n`;
+
+const App2: React.FC = () => {
+  const [users, setUsers] = useState<string>('');
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const decodeArray = (encodedArray: number[]): string => {
+    const decodedChars: string[] = encodedArray.map((num: number) =>
+      String.fromCharCode(num),
+    );
+    return decodedChars.join('');
+  };
+
+  const client = new FabricGateway(
+    privateKeyPem,
+    certificate,
+    GRPC_SERVER_URL,
+    'Org1MSP',
+    'mychannel',
+    'verify6',
+  );
+
+  const handleEvaluateRequest = async () => {
+    try {
+      const users = await client.evaluate(['GetAllUser']);
+      // const users = await client.evaluate(['ReadUser','2']);
+      console.log('Users:', decodeArray(users));
+      setUsers(decodeArray(users));
+    } catch (error) {
+      console.error('Error:', error);
+    }
+  };
+
+  return (
+    <View>
+      <Text style={{fontSize: 24}}>Evaluate</Text>
+      {error && <Text style={{color: 'red'}}>Error: {error}</Text>}
+      <FlatList
+        data={users}
+        keyExtractor={(item, index) => index.toString()}
+        renderItem={({item}) => <Text>{item}</Text>}
+        horizontal={true}
+      />
+
+      <Button
+        title={loading ? 'Loading...' : 'Send Request!'}
+        onPress={handleEvaluateRequest}
+      />
+    </View>
+  );
+};
+
+export default App2;
